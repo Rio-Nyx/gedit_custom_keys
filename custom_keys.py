@@ -9,8 +9,8 @@ class ExampleAppActivatable(GObject.Object, Gedit.AppActivatable):
 		# "<Primary>" normally corresponds to Ctrl key
 		# See README.md for a list of known action names
 
-		self.add_keyboard_shortcut("win.redo", "<Primary>Y")
-		self.add_keyboard_shortcut("win.goto-line", "<Primary>G")
+		#self.add_keyboard_shortcut("win.redo", "<Primary>Y")
+		#self.add_keyboard_shortcut("win.goto-line", "<Primary>G")
 		#Examples:
 		#self.add_keyboard_shortcut("app.new-window", "<Primary>N")
 		#self.add_keyboard_shortcut("app.help", "F1")
@@ -93,3 +93,16 @@ class GEdit3TabSwitch(GObject.Object, Gedit.WindowActivatable):
 				tab = tabs[i]
 			window.set_active_tab(tab)
 			return True
+		# Ctrl+Y - copy the current line
+		if event.state & Gdk.ModifierType.CONTROL_MASK and key == 'y':
+			doc = self.window.get_active_document()
+			doc.begin_user_action()
+			ins_ln = doc.get_iter_at_mark(doc.get_insert()).get_line()
+			sel_ln = doc.get_iter_at_mark(doc.get_selection_bound()).get_line()
+			it_beg = doc.get_iter_at_line(min(ins_ln, sel_ln))
+			it_end = doc.get_iter_at_line(max(ins_ln, sel_ln))
+			it_end.forward_line()
+			line = doc.get_text(it_beg,it_end,0)
+			self.clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
+			self.clipboard.set_text(line,-1)
+			doc.end_user_action()
